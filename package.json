@@ -2,7 +2,6 @@
   "name": "lazyotp",
   "version": "0.1.0",
   "private": true,
-  "description": "Simple OTP CLI using Bun Secrets and OS credential manager storage",
   "bin": {
     "lazyotp": "./index.ts"
   },
