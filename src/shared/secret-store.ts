@@ -5,7 +5,9 @@ type SecretsApi = {
 };
 
 function readSecretsApi(): SecretsApi {
-  const maybeBun = Reflect.get(globalThis, "Bun") as { secrets?: SecretsApi } | undefined;
+  const maybeBun = Reflect.get(globalThis, "Bun") as
+    | { secrets?: SecretsApi }
+    | undefined;
   const secrets = maybeBun?.secrets;
   if (!secrets) {
     throw new Error("Bun runtime with Bun.secrets is required.");
@@ -13,7 +15,11 @@ function readSecretsApi(): SecretsApi {
   return secrets;
 }
 
-export async function setStoredSecret(service: string, alias: string, secret: string): Promise<void> {
+export async function setStoredSecret(
+  service: string,
+  alias: string,
+  secret: string,
+): Promise<void> {
   const secrets = readSecretsApi();
   await secrets.set({
     service,
@@ -22,7 +28,10 @@ export async function setStoredSecret(service: string, alias: string, secret: st
   });
 }
 
-export async function getStoredSecret(service: string, alias: string): Promise<string | null> {
+export async function getStoredSecret(
+  service: string,
+  alias: string,
+): Promise<string | null> {
   const secrets = readSecretsApi();
   return secrets.get({
     service,
@@ -30,7 +39,10 @@ export async function getStoredSecret(service: string, alias: string): Promise<s
   });
 }
 
-export async function deleteStoredSecret(service: string, alias: string): Promise<boolean> {
+export async function deleteStoredSecret(
+  service: string,
+  alias: string,
+): Promise<boolean> {
   const secrets = readSecretsApi();
   return secrets.delete({
     service,

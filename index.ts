@@ -4,7 +4,9 @@ import { runCli } from "./src/main.ts";
 import { isInteractionNotAllowedError } from "./src/shared/errors.ts";
 
 function readRuntimeArgv(): string[] {
-  const maybeBun = Reflect.get(globalThis, "Bun") as { argv?: string[] } | undefined;
+  const maybeBun = Reflect.get(globalThis, "Bun") as
+    | { argv?: string[] }
+    | undefined;
   return maybeBun?.argv?.slice(2) ?? process.argv.slice(2);
 }
 

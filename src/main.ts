@@ -16,7 +16,11 @@ const COMMAND_HANDLERS: Record<Exclude<Command, "help">, CommandHandler> = {
   upgrade: commandUpgrade,
 };
 
-async function runCommand(command: Exclude<Command, "help">, args: string[], options: CliOptions): Promise<void> {
+async function runCommand(
+  command: Exclude<Command, "help">,
+  args: string[],
+  options: CliOptions,
+): Promise<void> {
   const handler = COMMAND_HANDLERS[command];
   await handler(args, options);
 }

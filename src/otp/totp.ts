@@ -74,7 +74,10 @@ async function importHmacKey(keyMaterial: Uint8Array): Promise<CryptoKey> {
   );
 }
 
-async function createHmacDigest(keyMaterial: Uint8Array, counterBuffer: ArrayBuffer): Promise<Uint8Array> {
+async function createHmacDigest(
+  keyMaterial: Uint8Array,
+  counterBuffer: ArrayBuffer,
+): Promise<Uint8Array> {
   const key = await importHmacKey(keyMaterial);
   return new Uint8Array(await crypto.subtle.sign("HMAC", key, counterBuffer));
 }
@@ -87,7 +90,10 @@ function readTruncateOffset(hmac: Uint8Array): number {
   return tail & 0x0f;
 }
 
-function readDynamicBytes(hmac: Uint8Array, offset: number): [number, number, number, number] {
+function readDynamicBytes(
+  hmac: Uint8Array,
+  offset: number,
+): [number, number, number, number] {
   if (offset + 3 >= hmac.length) {
     throw new Error("Failed to compute OTP from digest");
   }
@@ -110,7 +116,11 @@ function formatOtp(binary: number, digits: number): string {
   return (binary % 10 ** digits).toString().padStart(digits, "0");
 }
 
-export async function generateTotp(secret: string, digits: number, period: number): Promise<string> {
+export async function generateTotp(
+  secret: string,
+  digits: number,
+  period: number,
+): Promise<string> {
   const keyMaterial = Uint8Array.from(decodeBase32(secret));
   const counterBuffer = createCounterBuffer(period);
   const hmac = await createHmacDigest(keyMaterial, counterBuffer);

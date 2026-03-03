@@ -37,6 +37,65 @@ const SHORT_OPTION_MAP: Record<string, string> = {
   p: "period",
 };
 
+const LONG_FLAG_OPTIONS = new Set(["help"]);
+const LONG_VALUE_OPTIONS = new Set([
+  "service",
+  "alias",
+  "name",
+  "digits",
+  "period",
+  "secret",
+]);
+
+function assertKnownLongOption(key: string): void {
+  if (LONG_FLAG_OPTIONS.has(key) || LONG_VALUE_OPTIONS.has(key)) {
+    return;
+  }
+  throw new Error(`Unknown option: --${key}`);
+}
+
+function parseLongOptionWithEquals(
+  token: string,
+  eqIndex: number,
+  options: OptionMap,
+): OptionParseResult {
+  const key = token.slice(2, eqIndex);
+  const value = token.slice(eqIndex + 1);
+  assertKnownLongOption(key);
+
+  if (LONG_FLAG_OPTIONS.has(key)) {
+    if (value.length > 0) {
+      throw new Error(`Option does not take a value: --${key}`);
+    }
+    options[key] = true;
+    return { parsed: true, consumed: 0 };
+  }
+
+  options[key] = value;
+  return { parsed: true, consumed: 0 };
+}
+
+function parseLongOptionWithoutEquals(
+  token: string,
+  next: string | undefined,
+  options: OptionMap,
+): OptionParseResult {
+  const key = token.slice(2);
+  assertKnownLongOption(key);
+
+  if (LONG_FLAG_OPTIONS.has(key)) {
+    options[key] = true;
+    return { parsed: true, consumed: 0 };
+  }
+
+  if (!next || next.startsWith("-")) {
+    throw new Error(`Missing value for option: --${key}`);
+  }
+
+  options[key] = next;
+  return { parsed: true, consumed: 1 };
+}
+
 function normalizeCommand(value?: string): Command {
   if (!value) {
     return "help";
@@ -50,24 +109,23 @@ function normalizeCommand(value?: string): Command {
   throw new Error(`Unknown command: ${value}`);
 }
 
-function parseLongOption(token: string, next: string | undefined, options: OptionMap): OptionParseResult {
+function parseLongOption(
+  token: string,
+  next: string | undefined,
+  options: OptionMap,
+): OptionParseResult {
   const eqIndex = token.indexOf("=");
   if (eqIndex >= 0) {
-    options[token.slice(2, eqIndex)] = token.slice(eqIndex + 1);
-    return { parsed: true, consumed: 0 };
+    return parseLongOptionWithEquals(token, eqIndex, options);
   }
-
-  const key = token.slice(2);
-  if (!next || next.startsWith("-")) {
-    options[key] = true;
-    return { parsed: true, consumed: 0 };
-  }
-
-  options[key] = next;
-  return { parsed: true, consumed: 1 };
+  return parseLongOptionWithoutEquals(token, next, options);
 }
 
-function parseShortOption(token: string, next: string | undefined, options: OptionMap): OptionParseResult {
+function parseShortOption(
+  token: string,
+  next: string | undefined,
+  options: OptionMap,
+): OptionParseResult {
   const short = token.slice(1);
   if (short === "h") {
     options.help = true;
@@ -93,7 +151,11 @@ function readShortOptionValue(short: string, next: string | undefined): string {
   return next;
 }
 
-function parseOptionToken(argv: string[], index: number, options: OptionMap): OptionParseResult {
+function parseOptionToken(
+  argv: string[],
+  index: number,
+  options: OptionMap,
+): OptionParseResult {
   const token = argv[index];
   if (!token) {
     return { parsed: false, consumed: 0 };
@@ -110,7 +172,11 @@ function parseOptionToken(argv: string[], index: number, options: OptionMap): Op
   return { parsed: false, consumed: 0 };
 }
 
-function pushPositionalToken(token: string, positional: string[], commandToken?: string): string {
+function pushPositionalToken(
+  token: string,
+  positional: string[],
+  commandToken?: string,
+): string {
   if (!commandToken) {
     return token;
   }
@@ -127,14 +193,24 @@ export function parseArgv(argv: string[]): ParsedArgv {
   return { command: normalizeCommand(commandToken), positional, options };
 }
 
-function parseTokens(argv: string[]): { commandToken?: string; positional: string[]; options: OptionMap } {
+function parseTokens(argv: string[]): {
+  commandToken?: string;
+  positional: string[];
+  options: OptionMap;
+} {
   const options: OptionMap = {};
   const positional: string[] = [];
   let commandToken: string | undefined;
   let index = 0;
 
   while (index < argv.length) {
-    const parsedToken = parseTokenAtIndex(argv, index, options, positional, commandToken);
+    const parsedToken = parseTokenAtIndex(
+      argv,
+      index,
+      options,
+      positional,
+      commandToken,
+    );
     index = parsedToken.nextIndex;
     commandToken = parsedToken.commandToken;
   }
@@ -173,7 +249,10 @@ function parsePositiveInt(value: string, optionName: string): number {
   return parsed;
 }
 
-function readStringOption(options: OptionMap, name: string): string | undefined {
+function readStringOption(
+  options: OptionMap,
+  name: string,
+): string | undefined {
   const value = options[name];
   return typeof value === "string" ? value : undefined;
 }
@@ -186,14 +265,22 @@ function readOptionalSecret(options: OptionMap): string | undefined {
 }
 
 function readAlias(options: OptionMap): string {
-  const alias = (readStringOption(options, "alias") ?? readStringOption(options, "name") ?? DEFAULT_ALIAS).trim();
+  const alias = (
+    readStringOption(options, "alias") ??
+    readStringOption(options, "name") ??
+    DEFAULT_ALIAS
+  ).trim();
   if (!alias) {
     throw new Error("--alias must not be empty");
   }
   return alias;
 }
 
-function readPositiveIntOption(options: OptionMap, key: string, fallback: number): number {
+function readPositiveIntOption(
+  options: OptionMap,
+  key: string,
+  fallback: number,
+): number {
   const value = readStringOption(options, key);
   if (!value) {
     return fallback;

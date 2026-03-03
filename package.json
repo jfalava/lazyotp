@@ -20,6 +20,7 @@
     "lint": "oxlint --type-aware",
     "otp": "bun run index.ts",
     "start": "bun run index.ts",
+    "test": "vitest run",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {
@@ -27,7 +28,8 @@
     "@typescript/native-preview": "7.0.0-dev.20260225.1",
     "oxfmt": "0.35.0",
     "oxlint": "1.50.0",
-    "oxlint-tsgolint": "0.15.0"
+    "oxlint-tsgolint": "0.15.0",
+    "vitest": "^4.0.18"
   },
   "peerDependencies": {
     "typescript": "^5"

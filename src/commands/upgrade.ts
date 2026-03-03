@@ -14,7 +14,8 @@ type Release = {
   assets: ReleaseAsset[];
 };
 
-const API_BASE = process.env["LAZYOTP_API_URL"] ?? `https://api.github.com/repos/${REPO}`;
+const API_BASE =
+  process.env["LAZYOTP_API_URL"] ?? `https://api.github.com/repos/${REPO}`;
 const BIN_PATH = process.env["LAZYOTP_BIN_PATH"] ?? process.execPath;
 const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
 
@@ -71,7 +72,9 @@ async function fetchWithTimeout(
     return await fetch(url, { ...init, signal: controller.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`${requestLabel}: request timed out after ${timeoutMs}ms`);
+      throw new Error(
+        `${requestLabel}: request timed out after ${timeoutMs}ms`,
+      );
     }
     throw new Error(`${requestLabel}: ${formatErrorMessage(error)}`);
   } finally {
@@ -80,9 +83,14 @@ async function fetchWithTimeout(
 }
 
 async function fetchLatestRelease(timeoutMs: number): Promise<Release> {
-  const response = await fetchWithTimeout(`${API_BASE}/releases/latest`, "Failed to fetch latest release", timeoutMs, {
-    headers: { Accept: "application/vnd.github+json" },
-  });
+  const response = await fetchWithTimeout(
+    `${API_BASE}/releases/latest`,
+    "Failed to fetch latest release",
+    timeoutMs,
+    {
+      headers: { Accept: "application/vnd.github+json" },
+    },
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch latest release: ${response.status}`);
   }
@@ -91,16 +99,30 @@ async function fetchLatestRelease(timeoutMs: number): Promise<Release> {
 
 function selectAssetOrThrow(release: Release): ReleaseAsset {
   const assetName = getPlatformAssetName();
-  const asset = release.assets.find((candidate) => candidate.name === assetName);
+  const asset = release.assets.find(
+    (candidate) => candidate.name === assetName,
+  );
   if (!asset) {
-    const available = release.assets.map((candidate) => candidate.name).join(", ");
-    throw new Error(`No binary found for ${assetName}. Available assets: ${available || "(none)"}`);
+    const available = release.assets
+      .map((candidate) => candidate.name)
+      .join(", ");
+    throw new Error(
+      `No binary found for ${assetName}. Available assets: ${available || "(none)"}`,
+    );
   }
   return asset;
 }
 
-async function downloadToTemp(asset: ReleaseAsset, tmpPath: string, timeoutMs: number): Promise<void> {
-  const response = await fetchWithTimeout(asset.browser_download_url, "Download failed", timeoutMs);
+async function downloadToTemp(
+  asset: ReleaseAsset,
+  tmpPath: string,
+  timeoutMs: number,
+): Promise<void> {
+  const response = await fetchWithTimeout(
+    asset.browser_download_url,
+    "Download failed",
+    timeoutMs,
+  );
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status}`);
   }
@@ -138,14 +160,20 @@ function latestVersionFromRelease(release: Release): string {
   return release.tag_name.replace(/^v/, "");
 }
 
-async function installLatestRelease(release: Release, timeoutMs: number): Promise<void> {
+async function installLatestRelease(
+  release: Release,
+  timeoutMs: number,
+): Promise<void> {
   const asset = selectAssetOrThrow(release);
   const tmpPath = `${BIN_PATH}.tmp`;
   await downloadToTemp(asset, tmpPath, timeoutMs);
   replaceBinary(tmpPath);
 }
 
-export async function commandUpgrade(args: string[], _options: CliOptions): Promise<void> {
+export async function commandUpgrade(
+  args: string[],
+  _options: CliOptions,
+): Promise<void> {
   ensureUpgradeArgs(args);
   const timeoutMs = requestTimeoutMs();
   const release = await fetchLatestRelease(timeoutMs);
