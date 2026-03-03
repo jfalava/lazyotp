@@ -105,18 +105,3 @@ bun run build:windows-x64
 ```
 
 Artifacts are written to `dist/`.
-
-## GitHub Release Workflow
-
-There is a tag-triggered workflow at `.github/workflows/release.yml` that builds binaries for:
-
-- Linux x64 / arm64
-- macOS arm64 / x64
-- Windows x64
-
-To publish a release, push a semver tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
