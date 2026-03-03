@@ -1,0 +1,28 @@
+{
+  "name": "lazyotp",
+  "version": "0.1.0",
+  "description": "Simple OTP CLI using Bun Secrets and OS credential manager storage",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "lazyotp": "./index.ts"
+  },
+  "scripts": {
+    "start": "bun run index.ts",
+    "otp": "bun run index.ts",
+    "build": "mkdir -p dist && bun build --compile index.ts --outfile dist/lazyotp",
+    "build:all": "bun run build:darwin-arm64 && bun run build:darwin-x64 && bun run build:linux-x64 && bun run build:linux-arm64 && bun run build:windows-x64",
+    "build:darwin-arm64": "mkdir -p dist && bun build --compile --target=bun-darwin-arm64 index.ts --outfile dist/lazyotp-darwin-arm64",
+    "build:darwin-x64": "mkdir -p dist && bun build --compile --target=bun-darwin-x64 index.ts --outfile dist/lazyotp-darwin-x64",
+    "build:linux-arm64": "mkdir -p dist && bun build --compile --target=bun-linux-arm64 index.ts --outfile dist/lazyotp-linux-arm64",
+    "build:linux-x64": "mkdir -p dist && bun build --compile --target=bun-linux-x64 index.ts --outfile dist/lazyotp-linux-x64",
+    "build:windows-x64": "mkdir -p dist && bun build --compile --target=bun-windows-x64 index.ts --outfile dist/lazyotp-windows-x64.exe"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
