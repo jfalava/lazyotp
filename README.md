@@ -50,6 +50,18 @@ bun run index.ts code --secret JBSWY3DPEHPK3PXP
 bun run index.ts delete github
 ```
 
+### Upgrade to the latest release binary
+
+```bash
+lazyotp upgrade
+```
+
+Optional environment variables for upgrade behavior:
+
+- `LAZYOTP_API_URL` (default: `https://api.github.com/repos/jfalava/lazyotp`)
+- `LAZYOTP_BIN_PATH` (default: current executable path)
+- `LAZYOTP_UPGRADE_TIMEOUT_MS` (default: `15000`)
+
 ### Default alias and custom service
 
 ```bash

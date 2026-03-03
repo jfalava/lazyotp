@@ -3,6 +3,7 @@ import { usage } from "./cli/usage.ts";
 import { commandCode } from "./commands/code.ts";
 import { commandDelete } from "./commands/delete.ts";
 import { commandSet } from "./commands/set.ts";
+import { commandUpgrade } from "./commands/upgrade.ts";
 import { printLine } from "./shared/output.ts";
 import type { CliOptions, Command } from "./shared/types.ts";
 
@@ -12,6 +13,7 @@ const COMMAND_HANDLERS: Record<Exclude<Command, "help">, CommandHandler> = {
   set: commandSet,
   code: commandCode,
   delete: commandDelete,
+  upgrade: commandUpgrade,
 };
 
 async function runCommand(command: Exclude<Command, "help">, args: string[], options: CliOptions): Promise<void> {

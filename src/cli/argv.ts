@@ -26,6 +26,7 @@ const COMMAND_ALIASES = new Map<string, Command>([
   ["remove", "delete"],
   ["rm", "delete"],
   ["clear", "delete"],
+  ["upgrade", "upgrade"],
 ]);
 
 const SHORT_OPTION_MAP: Record<string, string> = {

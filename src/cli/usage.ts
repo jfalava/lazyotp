@@ -14,12 +14,14 @@ Usage:
   lazyotp code [alias] [--service <service>] [--digits <n>] [--period <n>]
   lazyotp code --secret <secret|otpauth://...> [--digits <n>] [--period <n>]
   lazyotp delete [alias] [--service <service>] [--alias <alias>]
+  lazyotp upgrade
   lazyotp help
 
 Commands:
   set       Store OTP secret in OS credential manager (Keychain/libsecret/Credential Manager)
   code      Generate current TOTP code (from stored secret, or one-off secret argument)
   delete    Delete stored secret
+  upgrade   Download and replace current binary with latest GitHub release for this platform
   help      Show this help message
 
 Options:
