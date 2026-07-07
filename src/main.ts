@@ -2,6 +2,7 @@ import { parseArgv, readCliOptions } from "./cli/argv.ts";
 import { usage } from "./cli/usage.ts";
 import { commandCode } from "./commands/code.ts";
 import { commandDelete } from "./commands/delete.ts";
+import { commandList } from "./commands/list.ts";
 import { commandSet } from "./commands/set.ts";
 import { commandUpgrade } from "./commands/upgrade.ts";
 import { printLine } from "./shared/output.ts";
@@ -13,6 +14,7 @@ const COMMAND_HANDLERS: Record<Exclude<Command, "help">, CommandHandler> = {
   set: commandSet,
   code: commandCode,
   delete: commandDelete,
+  list: commandList,
   upgrade: commandUpgrade,
 };
 
