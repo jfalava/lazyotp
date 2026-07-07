@@ -58,6 +58,11 @@ async function writeAliasIndex(
   });
 }
 
+// NOTE: Bun.secrets offers no locking/compare-and-swap primitive, so this
+// read-modify-write is not atomic. Concurrent lazyotp invocations touching
+// the same service can race here and one update may silently overwrite the
+// other's alias-index change (though the underlying secret itself is always
+// written directly and is not affected). This is a known limitation.
 async function addAliasToIndex(
   secrets: SecretsApi,
   service: string,
@@ -70,6 +75,8 @@ async function addAliasToIndex(
   }
 }
 
+// See the non-atomicity note on addAliasToIndex above; the same race applies
+// here.
 async function removeAliasFromIndex(
   secrets: SecretsApi,
   service: string,
@@ -94,7 +101,18 @@ export async function setStoredSecret(
     name: alias,
     value: secret,
   });
-  await addAliasToIndex(secrets, service, alias);
+
+  // The secret itself is already persisted at this point. Failing to update
+  // the alias index (e.g. a transient credential-store error) should not be
+  // reported as a failed `set`; it would only affect `lazyotp list` output.
+  try {
+    await addAliasToIndex(secrets, service, alias);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `Warning: stored secret but failed to update alias index: ${message}`,
+    );
+  }
 }
 
 export async function getStoredSecret(
