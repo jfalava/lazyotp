@@ -3,51 +3,49 @@
 Simple OTP CLI that stores secrets in your OS credential manager via `Bun.secrets`:
 
 - macOS: Keychain Services
-- Linux: libsecret (GNOME Keyring, KWallet, etc.)
+- Linux: `libsecret`
 - Windows: Credential Manager
 
 ## Install
 
-```bash
-bun install
-```
+Check the [latest](https://github.com/jfalava/lazyotp/releases) release and download the version compatible with your platform
 
 ## Usage
 
 ### Store an OTP secret with an alias
 
 ```bash
-bun run index.ts set github JBSWY3DPEHPK3PXP
+lazyotp set github AAAABBBBCCCCDDD
 ```
 
 You can also pass an `otpauth://...` URL:
 
 ```bash
-bun run index.ts set aws 'otpauth://totp/MyApp:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=MyApp'
+lazyotp set aws 'otpauth://totp/MyApp:user@example.com?secret=AAAABBBBCCCCDDD&issuer=MyApp'
 ```
 
 ### Generate a code by alias
 
 ```bash
-bun run index.ts code github
+lazyotp code github
 ```
 
 ### Pipe a code easily
 
 ```bash
-bun run index.ts code github | pbcopy
+lazyotp code github | pbcopy
 ```
 
 ### Generate a one-off code without storing
 
 ```bash
-bun run index.ts code --secret JBSWY3DPEHPK3PXP
+lazyotp code --secret AAAABBBBCCCCDDD
 ```
 
 ### Delete a stored alias
 
 ```bash
-bun run index.ts delete github
+lazyotp delete github
 ```
 
 ### Upgrade to the latest release binary
@@ -65,10 +63,10 @@ Optional environment variables for upgrade behavior:
 ### Default alias and custom service
 
 ```bash
-bun run index.ts set JBSWY3DPEHPK3PXP
-bun run index.ts code
-bun run index.ts set work JBSWY3DPEHPK3PXP --service company
-bun run index.ts code work --service company
+lazyotp set AAAABBBBCCCCDDD
+lazyotp code
+lazyotp set work AAAABBBBCCCCDDD --service company
+lazyotp code work --service company
 ```
 
 ## Global command
@@ -83,6 +81,10 @@ lazyotp help
 ## Build Binaries
 
 Build for your current platform:
+
+```bash
+bun install
+```
 
 ```bash
 bun run build

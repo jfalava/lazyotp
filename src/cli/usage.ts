@@ -14,6 +14,7 @@ Usage:
   lazyotp code [alias] [--service <service>] [--digits <n>] [--period <n>]
   lazyotp code --secret <secret|otpauth://...> [--digits <n>] [--period <n>]
   lazyotp delete [alias] [--service <service>] [--alias <alias>]
+  lazyotp list [--service <service>]
   lazyotp upgrade
   lazyotp help
 
@@ -21,6 +22,7 @@ Commands:
   set       Store OTP secret in OS credential manager (Keychain/libsecret/Credential Manager)
   code      Generate current TOTP code (from stored secret, or one-off secret argument)
   delete    Delete stored secret
+  list      List stored entry aliases (names only, no secrets) for a service
   upgrade   Download and replace current binary with latest GitHub release for this platform
   help      Show this help message
 
@@ -34,9 +36,10 @@ Options:
   -h, --help               Show help
 
 Examples:
-  bun run index.ts set github JBSWY3DPEHPK3PXP
-  bun run index.ts code github | pbcopy
-  bun run index.ts code --secret JBSWY3DPEHPK3PXP
-  bun run index.ts delete github
+  lazyotp set github AAAABBBBCCCCDDD
+  lazyotp code github | pbcopy
+  lazyotp code --secret AAAABBBBCCCCDDD
+  lazyotp delete github
+  lazyotp list
 `.trim();
 }

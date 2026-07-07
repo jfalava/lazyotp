@@ -1,4 +1,4 @@
-export type Command = "set" | "code" | "delete" | "upgrade" | "help";
+export type Command = "set" | "code" | "delete" | "list" | "upgrade" | "help";
 
 export interface ParsedArgv {
   command: Command;

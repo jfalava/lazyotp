@@ -26,6 +26,8 @@ const COMMAND_ALIASES = new Map<string, Command>([
   ["remove", "delete"],
   ["rm", "delete"],
   ["clear", "delete"],
+  ["list", "list"],
+  ["ls", "list"],
   ["upgrade", "upgrade"],
 ]);
 
