@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise"],
+  "options": {
+    "typeAware": true
+  },
   "env": {
     "node": true,
     "browser": false,
