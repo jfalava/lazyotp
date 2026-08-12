@@ -8,7 +8,28 @@ Simple OTP CLI that stores secrets in your OS credential manager via `Bun.secret
 
 ## Install
 
-Check the [latest](https://github.com/jfalava/lazyotp/releases) release and download the version compatible with your platform
+Check the [latest](https://github.com/jfalava/lazyotp/releases) release and download the version compatible with your platform.
+
+### macOS Gatekeeper
+
+macOS may quarantine a binary downloaded through a browser and report that
+`lazyotp` is damaged, cannot be opened, or was killed. Remove the quarantine
+attribute from the installed binary:
+
+```bash
+lazyotp_path="$(command -v lazyotp)"
+xattr -d com.apple.quarantine "$lazyotp_path"
+chmod 755 "$lazyotp_path"
+```
+
+If macOS still blocks it, apply an ad-hoc signature and clear the quarantine
+attribute again:
+
+```bash
+lazyotp_path="$(command -v lazyotp)"
+codesign --force --sign - "$lazyotp_path"
+xattr -d com.apple.quarantine "$lazyotp_path"
+```
 
 ## Usage
 
