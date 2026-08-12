@@ -52,9 +52,9 @@ function getPlatformAssetName(): string {
   return `lazyotp-${platform}-${arch}${suffix}`;
 }
 
-function formatErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
+function formatErrorMessage(cause: unknown): string {
+  if (cause instanceof Error && cause.message) {
+    return cause.message;
   }
   return "Unknown error";
 }

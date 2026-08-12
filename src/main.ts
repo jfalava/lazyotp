@@ -10,13 +10,13 @@ import type { CliOptions, Command } from "./shared/types.ts";
 
 type CommandHandler = (args: string[], options: CliOptions) => Promise<void>;
 
-const COMMAND_HANDLERS: Record<Exclude<Command, "help">, CommandHandler> = {
+const COMMAND_HANDLERS = {
   set: commandSet,
   code: commandCode,
   delete: commandDelete,
   list: commandList,
   upgrade: commandUpgrade,
-};
+} satisfies Record<Exclude<Command, "help">, CommandHandler>;
 
 async function runCommand(
   command: Exclude<Command, "help">,

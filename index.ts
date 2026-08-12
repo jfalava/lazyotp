@@ -10,8 +10,8 @@ function readRuntimeArgv(): string[] {
   return maybeBun?.argv?.slice(2) ?? process.argv.slice(2);
 }
 
-await runCli(readRuntimeArgv()).catch((error: unknown) => {
-  if (isInteractionNotAllowedError(error)) {
+await runCli(readRuntimeArgv()).catch((cause: unknown) => {
+  if (isInteractionNotAllowedError(cause)) {
     console.error(
       "Error: Bun Secrets could not access the OS credential manager in this environment. " +
         "Run this CLI in a normal local terminal session with Keychain/libsecret/Credential Manager access.",
@@ -19,7 +19,7 @@ await runCli(readRuntimeArgv()).catch((error: unknown) => {
     process.exit(1);
   }
 
-  const message = error instanceof Error ? error.message : String(error);
+  const message = cause instanceof Error ? cause.message : String(cause);
   console.error(`Error: ${message}`);
   process.exit(1);
 });

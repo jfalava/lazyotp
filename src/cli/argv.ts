@@ -31,13 +31,13 @@ const COMMAND_ALIASES = new Map<string, Command>([
   ["upgrade", "upgrade"],
 ]);
 
-const SHORT_OPTION_MAP: Record<string, string> = {
-  s: "service",
-  a: "alias",
-  n: "name",
-  d: "digits",
-  p: "period",
-};
+const SHORT_OPTION_MAP = new Map<string, string>([
+  ["s", "service"],
+  ["a", "alias"],
+  ["n", "name"],
+  ["d", "digits"],
+  ["p", "period"],
+]);
 
 const LONG_FLAG_OPTIONS = new Set(["help"]);
 const LONG_VALUE_OPTIONS = new Set([
@@ -139,7 +139,7 @@ function parseShortOption(
 }
 
 function resolveShortOptionKey(short: string): string {
-  const key = SHORT_OPTION_MAP[short];
+  const key = SHORT_OPTION_MAP.get(short);
   if (!key) {
     throw new Error(`Unknown option: -${short}`);
   }
@@ -195,11 +195,7 @@ export function parseArgv(argv: string[]): ParsedArgv {
   return { command: normalizeCommand(commandToken), positional, options };
 }
 
-function parseTokens(argv: string[]): {
-  commandToken?: string;
-  positional: string[];
-  options: OptionMap;
-} {
+function parseTokens(argv: string[]) {
   const options: OptionMap = {};
   const positional: string[] = [];
   let commandToken: string | undefined;
@@ -226,7 +222,7 @@ function parseTokenAtIndex(
   options: OptionMap,
   positional: string[],
   commandToken?: string,
-): { nextIndex: number; commandToken?: string } {
+) {
   const optionResult = parseOptionToken(argv, index, options);
   if (optionResult.parsed) {
     return { nextIndex: index + optionResult.consumed + 1, commandToken };
@@ -256,14 +252,18 @@ function readStringOption(
   name: string,
 ): string | undefined {
   const value = options[name];
-  return typeof value === "string" ? value : undefined;
+  if (value === true || value === false) {
+    return undefined;
+  }
+  return value;
 }
 
 function readOptionalSecret(options: OptionMap): string | undefined {
-  if (typeof options.secret === "boolean") {
+  const value = options.secret;
+  if (value === true || value === false) {
     throw new Error("--secret requires a value");
   }
-  return readStringOption(options, "secret");
+  return value;
 }
 
 function readAlias(options: OptionMap): string {

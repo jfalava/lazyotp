@@ -1,12 +1,9 @@
-export function isInteractionNotAllowedError(error: unknown): boolean {
+export function isInteractionNotAllowedError(cause: unknown): boolean {
   const raw = (() => {
-    if (error instanceof Error) {
-      return `${error.name} ${error.message}`;
+    if (cause instanceof Error) {
+      return `${cause.name} ${cause.message}`;
     }
-    if (typeof error === "string") {
-      return error;
-    }
-    return JSON.stringify(error ?? "");
+    return JSON.stringify(cause ?? "") ?? "";
   })();
   return raw.includes("ERR_SECRETS_INTERACTION_NOT_ALLOWED");
 }

@@ -10,6 +10,10 @@ type SecretsApi = {
 // per service, stored as a JSON array under this reserved alias name.
 const ALIAS_INDEX_NAME = "__lazyotp_alias_index__";
 
+function isStringValue(cause: unknown): cause is string {
+  return Object.prototype.toString.call(cause) === "[object String]";
+}
+
 function readSecretsApi(): SecretsApi {
   const maybeBun = Reflect.get(globalThis, "Bun") as
     | { secrets?: SecretsApi }
@@ -39,7 +43,7 @@ async function readAliasIndex(
   try {
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed)
-      ? parsed.filter((value): value is string => typeof value === "string")
+      ? parsed.filter(isStringValue)
       : [];
   } catch {
     return [];
