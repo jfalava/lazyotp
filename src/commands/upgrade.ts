@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { chmodSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { inflateRawSync } from "node:zlib";
@@ -7,12 +8,12 @@ import { printLine } from "../shared/output.ts";
 
 declare const Bun: typeof import("bun");
 
-type ReleaseAsset = {
+export type ReleaseAsset = {
   name: string;
   browser_download_url: string;
 };
 
-type Release = {
+export type Release = {
   tag_name: string;
   assets: ReleaseAsset[];
 };
@@ -115,6 +116,85 @@ function selectAssetOrThrow(release: Release): ReleaseAsset {
     throw new Error(`No binary found for ${assetName}. Available assets: ${available || "(none)"}`);
   }
   return asset;
+}
+
+export function selectChecksumAsset(release: Release): ReleaseAsset | undefined {
+  const preferredName = process.env["LAZYOTP_CHECKSUM_ASSET"];
+  if (preferredName) {
+    return release.assets.find((candidate) => candidate.name === preferredName);
+  }
+  return release.assets.find(
+    (candidate) =>
+      candidate.name === "checksums.txt" ||
+      candidate.name === "SHA256SUMS" ||
+      candidate.name === "checksums.sha256",
+  );
+}
+
+function selectChecksumAssetOrThrow(release: Release): ReleaseAsset {
+  const asset = selectChecksumAsset(release);
+  if (!asset) {
+    throw new Error(
+      `No checksum file found in release ${release.tag_name} (expected checksums.txt).`,
+    );
+  }
+  return asset;
+}
+
+function normalizeFileName(raw: string): string {
+  return raw.split("/").pop()?.split("\\").pop() ?? raw;
+}
+
+function parseStandardChecksum(line: string): [string, string] | undefined {
+  const match = line.match(/^([a-fA-F0-9]{64})\s+[*]?(\S+)$/);
+  if (!match?.[1] || !match[2]) {
+    return undefined;
+  }
+  return [normalizeFileName(match[2]), match[1].toLowerCase()];
+}
+
+function parseBsdChecksum(line: string): [string, string] | undefined {
+  const match = line.match(/^SHA256\s*\(([^)]+)\)\s*=\s*([a-fA-F0-9]{64})$/i);
+  if (!match?.[1] || !match[2]) {
+    return undefined;
+  }
+  return [normalizeFileName(match[1]), match[2].toLowerCase()];
+}
+
+function parseChecksumLine(line: string): [string, string] | undefined {
+  return parseStandardChecksum(line) ?? parseBsdChecksum(line);
+}
+
+export function parseChecksums(content: string): Map<string, string> {
+  const checksums = new Map<string, string>();
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const parsed = parseChecksumLine(trimmed);
+    if (parsed) {
+      checksums.set(parsed[0], parsed[1]);
+    }
+  }
+  return checksums;
+}
+
+export function computeSha256(data: Uint8Array): string {
+  return createHash("sha256").update(data).digest("hex");
+}
+
+export function verifyChecksum(
+  data: Uint8Array,
+  expectedChecksum: string,
+  assetName: string,
+): void {
+  const actualChecksum = computeSha256(data);
+  if (actualChecksum.toLowerCase() !== expectedChecksum.toLowerCase()) {
+    throw new Error(
+      `Checksum verification failed for ${assetName}: expected ${expectedChecksum.toLowerCase()}, got ${actualChecksum.toLowerCase()}`,
+    );
+  }
 }
 
 type ZipDirectory = {
@@ -301,23 +381,59 @@ function platformBinaryName(): string {
   return binaryName;
 }
 
-async function downloadToTemp(
+async function fetchChecksumFile(
   asset: ReleaseAsset,
-  tmpPath: string,
   timeoutMs: number,
-): Promise<void> {
+): Promise<string> {
+  const response = await fetchWithTimeout(
+    asset.browser_download_url,
+    "Checksum download failed",
+    timeoutMs,
+  );
+  if (!response.ok) {
+    throw new Error(`Checksum download failed: ${response.status}`);
+  }
+  return await response.text();
+}
+
+async function downloadArchive(
+  asset: ReleaseAsset,
+  expectedChecksum: string,
+  timeoutMs: number,
+): Promise<Uint8Array> {
   const response = await fetchWithTimeout(asset.browser_download_url, "Download failed", timeoutMs);
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status}`);
   }
 
   const archive = new Uint8Array(await response.arrayBuffer());
-  const expectedBinary = platformBinaryName();
-  const binary = extractZipBinary(archive, expectedBinary);
-  await writeFile(tmpPath, binary);
-  if (process.platform !== "win32") {
-    chmodSync(tmpPath, 0o755);
+  verifyChecksum(archive, expectedChecksum, asset.name);
+  return archive;
+}
+
+async function writeExtractedBinary(binary: Uint8Array, tmpPath: string): Promise<void> {
+  try {
+    await writeFile(tmpPath, binary);
+    if (process.platform !== "win32") {
+      chmodSync(tmpPath, 0o755);
+    }
+  } catch (error) {
+    if (existsSync(tmpPath)) {
+      unlinkSync(tmpPath);
+    }
+    throw error;
   }
+}
+
+async function downloadToTemp(
+  asset: ReleaseAsset,
+  expectedChecksum: string,
+  tmpPath: string,
+  timeoutMs: number,
+): Promise<void> {
+  const archive = await downloadArchive(asset, expectedChecksum, timeoutMs);
+  const binary = extractZipBinary(archive, platformBinaryName());
+  await writeExtractedBinary(binary, tmpPath);
 }
 
 function replaceBinaryOnWindows(tmpPath: string, targetPath: string): void {
@@ -384,8 +500,19 @@ function latestVersionFromRelease(release: Release): string {
 
 async function installLatestRelease(release: Release, timeoutMs: number): Promise<void> {
   const asset = selectAssetOrThrow(release);
+  const checksumAsset = selectChecksumAssetOrThrow(release);
+
+  const checksumText = await fetchChecksumFile(checksumAsset, timeoutMs);
+  const checksums = parseChecksums(checksumText);
+  const expectedChecksum = checksums.get(asset.name);
+  if (!expectedChecksum) {
+    throw new Error(
+      `No checksum found for ${asset.name} in ${checksumAsset.name}.`,
+    );
+  }
+
   const tmpPath = `${binaryPath()}.tmp`;
-  await downloadToTemp(asset, tmpPath, timeoutMs);
+  await downloadToTemp(asset, expectedChecksum, tmpPath, timeoutMs);
   replaceBinary(tmpPath);
 }
 
