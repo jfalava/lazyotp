@@ -20,9 +20,7 @@ type Release = {
 const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
 
 function apiBase(): string {
-  return (
-    process.env["LAZYOTP_API_URL"] ?? `https://api.github.com/repos/${REPO}`
-  );
+  return process.env["LAZYOTP_API_URL"] ?? `https://api.github.com/repos/${REPO}`;
 }
 
 function binaryPath(): string {
@@ -43,10 +41,7 @@ function requestTimeoutMs(): number {
   return parsed;
 }
 
-export function assetNameForPlatform(
-  platform: string,
-  arch: string,
-): string | undefined {
+export function assetNameForPlatform(platform: string, arch: string): string | undefined {
   const platformName =
     platform === "darwin"
       ? "darwin"
@@ -55,11 +50,8 @@ export function assetNameForPlatform(
         : platform === "win32"
           ? "windows"
           : undefined;
-  const architecture =
-    arch === "arm64" ? "arm64" : arch === "x64" ? "x64" : undefined;
-  return platformName && architecture
-    ? `lazyotp-${platformName}-${architecture}.zip`
-    : undefined;
+  const architecture = arch === "arm64" ? "arm64" : arch === "x64" ? "x64" : undefined;
+  return platformName && architecture ? `lazyotp-${platformName}-${architecture}.zip` : undefined;
 }
 
 export function binaryNameForPlatform(platform: string): string | undefined {
@@ -89,9 +81,7 @@ async function fetchWithTimeout(
     return await fetch(url, { ...init, signal: controller.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(
-        `${requestLabel}: request timed out after ${timeoutMs}ms`,
-      );
+      throw new Error(`${requestLabel}: request timed out after ${timeoutMs}ms`);
     }
     throw new Error(`${requestLabel}: ${formatErrorMessage(error)}`);
   } finally {
@@ -117,20 +107,12 @@ async function fetchLatestRelease(timeoutMs: number): Promise<Release> {
 function selectAssetOrThrow(release: Release): ReleaseAsset {
   const assetName = assetNameForPlatform(process.platform, process.arch);
   if (!assetName) {
-    throw new Error(
-      `Unsupported upgrade platform: ${process.platform}/${process.arch}`,
-    );
+    throw new Error(`Unsupported upgrade platform: ${process.platform}/${process.arch}`);
   }
-  const asset = release.assets.find(
-    (candidate) => candidate.name === assetName,
-  );
+  const asset = release.assets.find((candidate) => candidate.name === assetName);
   if (!asset) {
-    const available = release.assets
-      .map((candidate) => candidate.name)
-      .join(", ");
-    throw new Error(
-      `No binary found for ${assetName}. Available assets: ${available || "(none)"}`,
-    );
+    const available = release.assets.map((candidate) => candidate.name).join(", ");
+    throw new Error(`No binary found for ${assetName}. Available assets: ${available || "(none)"}`);
   }
   return asset;
 }
@@ -161,15 +143,8 @@ function uint32(view: DataView, offset: number): number {
 function findZipEndOffset(archive: Uint8Array, view: DataView): number {
   const minimumEndRecordSize = 22;
   const maximumCommentSize = 0xffff;
-  const searchStart = Math.max(
-    0,
-    archive.length - minimumEndRecordSize - maximumCommentSize,
-  );
-  for (
-    let offset = archive.length - minimumEndRecordSize;
-    offset >= searchStart;
-    offset -= 1
-  ) {
+  const searchStart = Math.max(0, archive.length - minimumEndRecordSize - maximumCommentSize);
+  for (let offset = archive.length - minimumEndRecordSize; offset >= searchStart; offset -= 1) {
     if (uint32(view, offset) === 0x06054b50) {
       return offset;
     }
@@ -177,11 +152,7 @@ function findZipEndOffset(archive: Uint8Array, view: DataView): number {
   throw new Error("Downloaded release is not a valid ZIP archive.");
 }
 
-function readZipDirectory(
-  archive: Uint8Array,
-  view: DataView,
-  endOffset: number,
-): ZipDirectory {
+function readZipDirectory(archive: Uint8Array, view: DataView, endOffset: number): ZipDirectory {
   const centralDirectorySize = uint32(view, endOffset + 12);
   const centralDirectoryOffset = uint32(view, endOffset + 16);
   const centralDirectoryEnd = centralDirectoryOffset + centralDirectorySize;
@@ -219,11 +190,7 @@ function readZipEntryBounds(view: DataView, offset: number): ZipEntryBounds {
   };
 }
 
-function readZipEntry(
-  archive: Uint8Array,
-  view: DataView,
-  offset: number,
-): ZipEntry {
+function readZipEntry(archive: Uint8Array, view: DataView, offset: number): ZipEntry {
   if (uint32(view, offset) !== 0x02014b50) {
     throw new Error("Downloaded release has an invalid ZIP entry.");
   }
@@ -236,25 +203,18 @@ function readZipEntry(
     compressedSize: uint32(view, offset + 20),
     uncompressedSize: uint32(view, offset + 24),
     localFileOffset: uint32(view, offset + 42),
-    name: new TextDecoder().decode(
-      archive.subarray(bounds.fileNameStart, bounds.fileNameEnd),
-    ),
+    name: new TextDecoder().decode(archive.subarray(bounds.fileNameStart, bounds.fileNameEnd)),
     nextOffset: bounds.nextOffset,
   };
 }
 
-function readCompressedZipEntry(
-  archive: Uint8Array,
-  view: DataView,
-  entry: ZipEntry,
-): Uint8Array {
+function readCompressedZipEntry(archive: Uint8Array, view: DataView, entry: ZipEntry): Uint8Array {
   if (uint32(view, entry.localFileOffset) !== 0x04034b50) {
     throw new Error("Downloaded release has an invalid executable entry.");
   }
   const localFileNameLength = uint16(view, entry.localFileOffset + 26);
   const localExtraFieldLength = uint16(view, entry.localFileOffset + 28);
-  const dataStart =
-    entry.localFileOffset + 30 + localFileNameLength + localExtraFieldLength;
+  const dataStart = entry.localFileOffset + 30 + localFileNameLength + localExtraFieldLength;
   const dataEnd = dataStart + entry.compressedSize;
   if (dataEnd > archive.length) {
     throw new Error("Downloaded release has a truncated executable entry.");
@@ -275,18 +235,12 @@ function inflateZipEntry(compressed: Uint8Array, entry: ZipEntry): Uint8Array {
     );
   }
   if (binary.byteLength !== entry.uncompressedSize) {
-    throw new Error(
-      "Downloaded release executable size does not match its ZIP entry.",
-    );
+    throw new Error("Downloaded release executable size does not match its ZIP entry.");
   }
   return binary;
 }
 
-function extractZipEntry(
-  archive: Uint8Array,
-  view: DataView,
-  entry: ZipEntry,
-): Uint8Array {
+function extractZipEntry(archive: Uint8Array, view: DataView, entry: ZipEntry): Uint8Array {
   const compressed = readCompressedZipEntry(archive, view, entry);
   return inflateZipEntry(compressed, entry);
 }
@@ -304,11 +258,7 @@ function searchZipDirectory(
 ): ZipSearch {
   let offset = directory.offset;
   const files: ZipEntry[] = [];
-  for (
-    let entry = 0;
-    entry < directory.entryCount && offset < directory.end;
-    entry += 1
-  ) {
+  for (let entry = 0; entry < directory.entryCount && offset < directory.end; entry += 1) {
     const zipEntry = readZipEntry(archive, view, offset);
     if (zipEntry.name === expectedName) {
       return { expected: zipEntry, files };
@@ -321,10 +271,7 @@ function searchZipDirectory(
   return { expected: undefined, files };
 }
 
-function selectZipBinaryEntry(
-  search: ZipSearch,
-  expectedName: string,
-): ZipEntry {
+function selectZipBinaryEntry(search: ZipSearch, expectedName: string): ZipEntry {
   if (search.expected) {
     return search.expected;
   }
@@ -338,15 +285,8 @@ function selectZipBinaryEntry(
   );
 }
 
-export function extractZipBinary(
-  archive: Uint8Array,
-  expectedName: string,
-): Uint8Array {
-  const view = new DataView(
-    archive.buffer,
-    archive.byteOffset,
-    archive.byteLength,
-  );
+export function extractZipBinary(archive: Uint8Array, expectedName: string): Uint8Array {
+  const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
   const directory = findZipDirectory(archive, view);
   const search = searchZipDirectory(archive, view, directory, expectedName);
   const entry = selectZipBinaryEntry(search, expectedName);
@@ -356,9 +296,7 @@ export function extractZipBinary(
 function platformBinaryName(): string {
   const binaryName = binaryNameForPlatform(process.platform);
   if (!binaryName) {
-    throw new Error(
-      `Unsupported upgrade platform: ${process.platform}/${process.arch}`,
-    );
+    throw new Error(`Unsupported upgrade platform: ${process.platform}/${process.arch}`);
   }
   return binaryName;
 }
@@ -368,11 +306,7 @@ async function downloadToTemp(
   tmpPath: string,
   timeoutMs: number,
 ): Promise<void> {
-  const response = await fetchWithTimeout(
-    asset.browser_download_url,
-    "Download failed",
-    timeoutMs,
-  );
+  const response = await fetchWithTimeout(asset.browser_download_url, "Download failed", timeoutMs);
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status}`);
   }
@@ -448,20 +382,14 @@ function latestVersionFromRelease(release: Release): string {
   return release.tag_name.replace(/^v/, "");
 }
 
-async function installLatestRelease(
-  release: Release,
-  timeoutMs: number,
-): Promise<void> {
+async function installLatestRelease(release: Release, timeoutMs: number): Promise<void> {
   const asset = selectAssetOrThrow(release);
   const tmpPath = `${binaryPath()}.tmp`;
   await downloadToTemp(asset, tmpPath, timeoutMs);
   replaceBinary(tmpPath);
 }
 
-export async function commandUpgrade(
-  args: string[],
-  _options: CliOptions,
-): Promise<void> {
+export async function commandUpgrade(args: string[], _options: CliOptions): Promise<void> {
   ensureUpgradeArgs(args);
   const timeoutMs = requestTimeoutMs();
   const release = await fetchLatestRelease(timeoutMs);

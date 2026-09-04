@@ -1,10 +1,6 @@
 import { deflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import {
-  assetNameForPlatform,
-  binaryNameForPlatform,
-  extractZipBinary,
-} from "./upgrade.ts";
+import { assetNameForPlatform, binaryNameForPlatform, extractZipBinary } from "./upgrade.ts";
 
 function localEntryHeader(
   name: Buffer,
@@ -50,34 +46,16 @@ function singleFileZip(name: string, contents: string, method: number): Buffer {
   const binary = Buffer.from(contents);
   const compressed = method === 8 ? deflateRawSync(binary) : binary;
   const encodedName = Buffer.from(name);
-  const local = localEntryHeader(
-    encodedName,
-    compressed,
-    binary.length,
-    method,
-  );
-  const central = centralEntryHeader(
-    encodedName,
-    compressed,
-    binary.length,
-    method,
-  );
-  return Buffer.concat([
-    local,
-    central,
-    endRecord(central.length, local.length),
-  ]);
+  const local = localEntryHeader(encodedName, compressed, binary.length, method);
+  const central = centralEntryHeader(encodedName, compressed, binary.length, method);
+  return Buffer.concat([local, central, endRecord(central.length, local.length)]);
 }
 
 describe("upgrade release names", () => {
   it("uses zipped platform and architecture assets", () => {
-    expect(assetNameForPlatform("darwin", "arm64")).toBe(
-      "lazyotp-darwin-arm64.zip",
-    );
+    expect(assetNameForPlatform("darwin", "arm64")).toBe("lazyotp-darwin-arm64.zip");
     expect(assetNameForPlatform("linux", "x64")).toBe("lazyotp-linux-x64.zip");
-    expect(assetNameForPlatform("win32", "x64")).toBe(
-      "lazyotp-windows-x64.zip",
-    );
+    expect(assetNameForPlatform("win32", "x64")).toBe("lazyotp-windows-x64.zip");
   });
 
   it("rejects unsupported platforms and architectures", () => {
@@ -106,8 +84,8 @@ describe("extractZipBinary", () => {
   });
 
   it("rejects data that is not a ZIP archive", () => {
-    expect(() =>
-      extractZipBinary(Buffer.from("not-an-archive"), "lazyotp"),
-    ).toThrow("not a valid ZIP archive");
+    expect(() => extractZipBinary(Buffer.from("not-an-archive"), "lazyotp")).toThrow(
+      "not a valid ZIP archive",
+    );
   });
 });

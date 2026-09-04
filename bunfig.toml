@@ -1,0 +1,3 @@
+[install]
+minimumReleaseAgeExcludes = ["@types/node", "bun-types"]
+minimunReleaseAge = 86400

@@ -19,9 +19,7 @@ describe("parseArgv", () => {
   });
 
   it("parses long and short options", () => {
-    expect(
-      parseArgv(["code", "--service=otp", "-d", "8", "--period", "60"]),
-    ).toEqual({
+    expect(parseArgv(["code", "--service=otp", "-d", "8", "--period", "60"])).toEqual({
       command: "code",
       positional: [],
       options: {
@@ -45,21 +43,15 @@ describe("parseArgv", () => {
   });
 
   it("throws on short option without a value", () => {
-    expect(() => parseArgv(["code", "-d"])).toThrow(
-      "Missing value for option: -d",
-    );
+    expect(() => parseArgv(["code", "-d"])).toThrow("Missing value for option: -d");
   });
 
   it("throws on long option without a value", () => {
-    expect(() => parseArgv(["code", "--digits"])).toThrow(
-      "Missing value for option: --digits",
-    );
+    expect(() => parseArgv(["code", "--digits"])).toThrow("Missing value for option: --digits");
   });
 
   it("throws on unknown long option", () => {
-    expect(() => parseArgv(["code", "--digitz", "6"])).toThrow(
-      "Unknown option: --digitz",
-    );
+    expect(() => parseArgv(["code", "--digitz", "6"])).toThrow("Unknown option: --digitz");
   });
 });
 
@@ -84,26 +76,16 @@ describe("readCliOptions", () => {
   });
 
   it("throws when alias is blank", () => {
-    expect(() => readCliOptions({ alias: "   " })).toThrow(
-      "--alias must not be empty",
-    );
+    expect(() => readCliOptions({ alias: "   " })).toThrow("--alias must not be empty");
   });
 
   it("throws when --secret is passed without a value", () => {
-    expect(() => readCliOptions({ secret: true })).toThrow(
-      "--secret requires a value",
-    );
+    expect(() => readCliOptions({ secret: true })).toThrow("--secret requires a value");
   });
 
   it("throws for invalid digits and period", () => {
-    expect(() => readCliOptions({ digits: "0" })).toThrow(
-      "--digits must be a positive integer",
-    );
-    expect(() => readCliOptions({ digits: "11" })).toThrow(
-      "--digits must be <= 10",
-    );
-    expect(() => readCliOptions({ period: "-1" })).toThrow(
-      "--period must be a positive integer",
-    );
+    expect(() => readCliOptions({ digits: "0" })).toThrow("--digits must be a positive integer");
+    expect(() => readCliOptions({ digits: "11" })).toThrow("--digits must be <= 10");
+    expect(() => readCliOptions({ period: "-1" })).toThrow("--period must be a positive integer");
   });
 });

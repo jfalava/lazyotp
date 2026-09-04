@@ -65,13 +65,7 @@ function createCounterBuffer(period: number): ArrayBuffer {
 
 async function importHmacKey(keyMaterial: Uint8Array): Promise<CryptoKey> {
   const keyBytes = new Uint8Array(keyMaterial);
-  return crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "HMAC", hash: "SHA-1" },
-    false,
-    ["sign"],
-  );
+  return crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
 }
 
 async function createHmacDigest(
@@ -90,10 +84,7 @@ function readTruncateOffset(hmac: Uint8Array): number {
   return tail & 0x0f;
 }
 
-function readDynamicBytes(
-  hmac: Uint8Array,
-  offset: number,
-): [number, number, number, number] {
+function readDynamicBytes(hmac: Uint8Array, offset: number): [number, number, number, number] {
   if (offset + 3 >= hmac.length) {
     throw new Error("Failed to compute OTP from digest");
   }

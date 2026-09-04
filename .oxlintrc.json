@@ -8,7 +8,8 @@
     }
   ],
   "options": {
-    "typeAware": true
+    "typeAware": true,
+    "typeCheck": true
   },
   "env": {
     "node": true,

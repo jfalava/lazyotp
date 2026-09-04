@@ -4,10 +4,7 @@ import { formatSecretLocation } from "../shared/secret-location.ts";
 import { printLine } from "../shared/output.ts";
 import { setStoredSecret } from "../shared/secret-store.ts";
 
-export async function commandSet(
-  args: string[],
-  options: CliOptions,
-): Promise<void> {
+export async function commandSet(args: string[], options: CliOptions): Promise<void> {
   if (args.length === 0 || args.length > 2) {
     throw new Error("Usage: lazyotp set [alias] <secret|otpauth://...>");
   }

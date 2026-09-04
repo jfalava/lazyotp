@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "printWidth": 80,
+  "printWidth": 100,
   "tabWidth": 2,
   "useTabs": false,
   "endOfLine": "lf",
@@ -11,5 +11,5 @@
   "experimentalSortPackageJson": {
     "sortScripts": true
   },
-  "ignorePatterns": ["node_modules/**"]
+  "ignorePatterns": ["node_modules/**", "tools/oxlint/anti-slop/**"]
 }

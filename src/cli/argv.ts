@@ -40,14 +40,7 @@ const SHORT_OPTION_MAP = new Map<string, string>([
 ]);
 
 const LONG_FLAG_OPTIONS = new Set(["help"]);
-const LONG_VALUE_OPTIONS = new Set([
-  "service",
-  "alias",
-  "name",
-  "digits",
-  "period",
-  "secret",
-]);
+const LONG_VALUE_OPTIONS = new Set(["service", "alias", "name", "digits", "period", "secret"]);
 
 function assertKnownLongOption(key: string): void {
   if (LONG_FLAG_OPTIONS.has(key) || LONG_VALUE_OPTIONS.has(key)) {
@@ -153,11 +146,7 @@ function readShortOptionValue(short: string, next: string | undefined): string {
   return next;
 }
 
-function parseOptionToken(
-  argv: string[],
-  index: number,
-  options: OptionMap,
-): OptionParseResult {
+function parseOptionToken(argv: string[], index: number, options: OptionMap): OptionParseResult {
   const token = argv[index];
   if (!token) {
     return { parsed: false, consumed: 0 };
@@ -174,11 +163,7 @@ function parseOptionToken(
   return { parsed: false, consumed: 0 };
 }
 
-function pushPositionalToken(
-  token: string,
-  positional: string[],
-  commandToken?: string,
-): string {
+function pushPositionalToken(token: string, positional: string[], commandToken?: string): string {
   if (!commandToken) {
     return token;
   }
@@ -202,13 +187,7 @@ function parseTokens(argv: string[]) {
   let index = 0;
 
   while (index < argv.length) {
-    const parsedToken = parseTokenAtIndex(
-      argv,
-      index,
-      options,
-      positional,
-      commandToken,
-    );
+    const parsedToken = parseTokenAtIndex(argv, index, options, positional, commandToken);
     index = parsedToken.nextIndex;
     commandToken = parsedToken.commandToken;
   }
@@ -247,10 +226,7 @@ function parsePositiveInt(value: string, optionName: string): number {
   return parsed;
 }
 
-function readStringOption(
-  options: OptionMap,
-  name: string,
-): string | undefined {
+function readStringOption(options: OptionMap, name: string): string | undefined {
   const value = options[name];
   if (value === true || value === false) {
     return undefined;
@@ -278,11 +254,7 @@ function readAlias(options: OptionMap): string {
   return alias;
 }
 
-function readPositiveIntOption(
-  options: OptionMap,
-  key: string,
-  fallback: number,
-): number {
+function readPositiveIntOption(options: OptionMap, key: string, fallback: number): number {
   const value = readStringOption(options, key);
   if (!value) {
     return fallback;

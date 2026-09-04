@@ -7,11 +7,9 @@ describe("extractSecret", () => {
   });
 
   it("extracts secret query param from otpauth URL", () => {
-    expect(
-      extractSecret(
-        "otpauth://totp/GitHub?secret=JBSWY3DPEHPK3PXP&issuer=GitHub",
-      ),
-    ).toBe("JBSWY3DPEHPK3PXP");
+    expect(extractSecret("otpauth://totp/GitHub?secret=JBSWY3DPEHPK3PXP&issuer=GitHub")).toBe(
+      "JBSWY3DPEHPK3PXP",
+    );
   });
 
   it("throws for invalid otpauth URL", () => {

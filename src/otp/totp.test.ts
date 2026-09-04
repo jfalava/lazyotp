@@ -26,11 +26,7 @@ describe("generateTotp", () => {
     vi.useFakeTimers();
     vi.setSystemTime(59_000);
 
-    const code = await generateTotp(
-      "gezd-gnbv gy3tqojq gezdgnbvgy3tqojq",
-      8,
-      30,
-    );
+    const code = await generateTotp("gezd-gnbv gy3tqojq gezdgnbvgy3tqojq", 8, 30);
     expect(code).toBe("94287082");
   });
 
@@ -41,8 +37,6 @@ describe("generateTotp", () => {
   });
 
   it("throws when secret is empty after normalization", async () => {
-    await expect(generateTotp("   ", 6, 30)).rejects.toThrow(
-      "Secret cannot be empty",
-    );
+    await expect(generateTotp("   ", 6, 30)).rejects.toThrow("Secret cannot be empty");
   });
 });

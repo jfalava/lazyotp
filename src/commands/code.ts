@@ -7,9 +7,7 @@ import { getStoredSecret } from "../shared/secret-store.ts";
 
 function validateCodeArgs(args: string[], options: CliOptions): void {
   if (args.length > 1) {
-    throw new Error(
-      "Usage: lazyotp code [alias] [--secret <secret|otpauth://...>]",
-    );
+    throw new Error("Usage: lazyotp code [alias] [--secret <secret|otpauth://...>]");
   }
 
   if (options.oneOffSecret && args.length > 0) {
@@ -53,11 +51,7 @@ async function resolveSecret(
   };
 }
 
-function assertSecretExists(
-  secret: string | null,
-  service: string,
-  alias: string,
-): string {
+function assertSecretExists(secret: string | null, service: string, alias: string): string {
   if (!secret) {
     throw new Error(
       `No secret found for ${formatSecretLocation(service, alias)}. Run 'lazyotp set ${alias} <secret>' first.`,
@@ -66,17 +60,10 @@ function assertSecretExists(
   return secret;
 }
 
-export async function commandCode(
-  args: string[],
-  options: CliOptions,
-): Promise<void> {
+export async function commandCode(args: string[], options: CliOptions): Promise<void> {
   validateCodeArgs(args, options);
   const { alias, secret } = await resolveSecret(args, options);
   const resolvedSecret = assertSecretExists(secret, options.service, alias);
-  const code = await generateTotp(
-    resolvedSecret,
-    options.digits,
-    options.period,
-  );
+  const code = await generateTotp(resolvedSecret, options.digits, options.period);
   printLine(code);
 }

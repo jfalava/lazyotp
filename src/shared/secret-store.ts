@@ -15,9 +15,7 @@ function isStringValue(cause: unknown): cause is string {
 }
 
 function readSecretsApi(): SecretsApi {
-  const maybeBun = Reflect.get(globalThis, "Bun") as
-    | { secrets?: SecretsApi }
-    | undefined;
+  const maybeBun = Reflect.get(globalThis, "Bun") as { secrets?: SecretsApi } | undefined;
   const secrets = maybeBun?.secrets;
   if (!secrets) {
     throw new Error("Bun runtime with Bun.secrets is required.");
@@ -31,10 +29,7 @@ function assertNotReservedAlias(alias: string): void {
   }
 }
 
-async function readAliasIndex(
-  secrets: SecretsApi,
-  service: string,
-): Promise<string[]> {
+async function readAliasIndex(secrets: SecretsApi, service: string): Promise<string[]> {
   const raw = await secrets.get({ service, name: ALIAS_INDEX_NAME });
   if (!raw) {
     return [];
@@ -42,9 +37,7 @@ async function readAliasIndex(
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter(isStringValue)
-      : [];
+    return Array.isArray(parsed) ? parsed.filter(isStringValue) : [];
   } catch {
     return [];
   }
@@ -67,11 +60,7 @@ async function writeAliasIndex(
 // the same service can race here and one update may silently overwrite the
 // other's alias-index change (though the underlying secret itself is always
 // written directly and is not affected). This is a known limitation.
-async function addAliasToIndex(
-  secrets: SecretsApi,
-  service: string,
-  alias: string,
-): Promise<void> {
+async function addAliasToIndex(secrets: SecretsApi, service: string, alias: string): Promise<void> {
   const aliases = await readAliasIndex(secrets, service);
   if (!aliases.includes(alias)) {
     aliases.push(alias);
@@ -113,16 +102,11 @@ export async function setStoredSecret(
     await addAliasToIndex(secrets, service, alias);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Warning: stored secret but failed to update alias index: ${message}`,
-    );
+    console.error(`Warning: stored secret but failed to update alias index: ${message}`);
   }
 }
 
-export async function getStoredSecret(
-  service: string,
-  alias: string,
-): Promise<string | null> {
+export async function getStoredSecret(service: string, alias: string): Promise<string | null> {
   const secrets = readSecretsApi();
   return secrets.get({
     service,
@@ -130,10 +114,7 @@ export async function getStoredSecret(
   });
 }
 
-export async function deleteStoredSecret(
-  service: string,
-  alias: string,
-): Promise<boolean> {
+export async function deleteStoredSecret(service: string, alias: string): Promise<boolean> {
   const secrets = readSecretsApi();
   const deleted = await secrets.delete({
     service,

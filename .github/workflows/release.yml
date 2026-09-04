@@ -1,4 +1,4 @@
-name: Release
+name: lazyotp/release
 
 on:
   push:
